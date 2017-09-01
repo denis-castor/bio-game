@@ -1,8 +1,24 @@
+<!--
+
+    Melissa Mark, thanks for this game!
+    You did a great job!
+
+            _
+           /(|
+          (  :
+         __\  \  _____
+       (____)  `|
+      (____)|   |
+       (____).__|
+        (___)__.|_____
+
+-->
+
 <!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Phaser - Making your first game, part 1</title>
+    <title>Get the Bio</title>
     <script type="text/javascript" src="js/phaser.min.js"></script>
     <style type="text/css">
         body {
@@ -120,15 +136,14 @@
         }
 
         // keys binding
-        upKey = game.input.keyboard.addKey(Phaser.Keyboard.UP);
-        downKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
         leftKey = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
         rightKey = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
-        spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
 
+        // Main char
         character.sprite = game.add.sprite(x, y, sprites.mainCharacter.name);
         character.sprite.scale.setTo(0.15, 0.15);
 
+        // Bio
         bio.sprite = game.add.sprite(screenWidth - 240, bio.initialPositionY, sprites.bioCharacter.name);
         bio.sprite.scale.setTo(0.07, 0.07);
 
@@ -136,6 +151,7 @@
         bio.bounceDelta = 10;
         bio.direction = 1;
 
+        // Random stuff
         var soCloseScale = 0.4;
         soClose.sprite = game.add.sprite(screenWidth - 320, screenHeight - sprites.soClose.height * soCloseScale, sprites.soClose.name);
         soClose.sprite.scale.setTo(soCloseScale, soCloseScale);
@@ -196,11 +212,9 @@
     }
 
     function update() {
-
         applyForces();
         moveBackground();
         isItClose();
-
 
         // Bouncing bio image
         if (bio.sprite.y > (bio.initialPositionY + bio.bounceDelta)) {
@@ -236,6 +250,11 @@
     }
 
 </script>
+
+
+<div style="padding: 20px">
+    Hit left arrow, then hit right arrow, then repeat.
+</div>
 
 </body>
 </html>
