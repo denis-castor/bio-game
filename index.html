@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Phaser - Making your first game, part 1</title>
+    <script type="text/javascript" src="js/phaser.min.js"></script>
+    <style type="text/css">
+        body {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+<script type="text/javascript">
+    var screenHeight            = 257,
+        screenWidth             = 1000,
+        game = new Phaser.Game(screenWidth, screenHeight, Phaser.AUTO, '', { preload: preload, create: create, update: update }),
+
+        upKey, downKey, leftKey, rightKey, spaceBar,
+
+        x = 20, y = 30, speed = 11,
+
+        obstacle = {
+            x: screenWidth - 240,
+            y: 100
+        },
+
+        sprites = {
+            bg: {
+                name: 'sprite.bg',
+                image:  'assets/bg-sprite.jpg',
+                width: 512,
+                height: 257
+            },
+            mainCharacter: {
+                name: 'sprite.mainCharacter',
+                image:  'assets/melissa.png',
+                width: 1156,
+                height: 1240
+            },
+            bioCharacter: {
+                name: 'sprite.bioCharacter',
+                image:  'assets/bio.png',
+                width: 2132,
+                height: 3245
+            },
+            soClose: {
+                name: 'sprite.soClose',
+                image:  'assets/so-close.png',
+                width: 300,
+                height: 290
+            }
+        },
+
+        forces = {
+            pushBack: {
+                limit: {
+                    x: 100
+                },
+                x: -1
+            }
+        },
+
+        background = {
+            sprites: [],
+            speed: 3
+        },
+
+        bio = {
+            sprite: {},
+            initialPositionY: 20
+        },
+
+        character = {
+            sprite: {},
+
+            lastPressedKey: 0,
+
+            getX: function() {
+                return this.sprite.x;
+            },
+
+            getY: function() {
+                return this.sprite.y;
+            },
+
+            setX: function(x) {
+                this.sprite.x = x;
+                return this;
+            },
+
+            setY: function(y) {
+                this.sprite.y = y;
+                return this;
+            }
+        },
+
+        soClose = {
+            sprite: {}
+        },
+
+        cheats = {
+            move: false
+        }
+    ;
+
+    function preload() {
+        var sprite, i;
+        for (i in sprites) {
+            sprite = sprites[i];
+            game.load.spritesheet(sprite.name, sprite.image, sprite.width, sprite.height);
+        }
+    }
+
+    function create() {
+        // background filling
+        for (var i = 0; i <= 50; i++) {
+            background.sprites.push(game.add.sprite(i * sprites.bg.width, 0, sprites.bg.name));
+        }
+
+        // keys binding
+        upKey = game.input.keyboard.addKey(Phaser.Keyboard.UP);
+        downKey = game.input.keyboard.addKey(Phaser.Keyboard.DOWN);
+        leftKey = game.input.keyboard.addKey(Phaser.Keyboard.LEFT);
+        rightKey = game.input.keyboard.addKey(Phaser.Keyboard.RIGHT);
+        spaceBar = game.input.keyboard.addKey(Phaser.Keyboard.SPACEBAR);
+
+        character.sprite = game.add.sprite(x, y, sprites.mainCharacter.name);
+        character.sprite.scale.setTo(0.15, 0.15);
+
+        bio.sprite = game.add.sprite(screenWidth - 240, bio.initialPositionY, sprites.bioCharacter.name);
+        bio.sprite.scale.setTo(0.07, 0.07);
+
+        bio.speed = 1;
+        bio.bounceDelta = 10;
+        bio.direction = 1;
+
+        var soCloseScale = 0.4;
+        soClose.sprite = game.add.sprite(screenWidth - 320, screenHeight - sprites.soClose.height * soCloseScale, sprites.soClose.name);
+        soClose.sprite.scale.setTo(soCloseScale, soCloseScale);
+        soClose.sprite.visible = false;
+
+        console.log("Set [cheats.move = true] for the win ;)");
+    }
+
+    function moveBackground() {
+        for (var index in background.sprites) {
+            background.sprites[index].x = background.sprites[index].x - background.speed;
+        }
+    }
+
+    function charAtScreen(percentage, more) {
+        var pointToReach = screenWidth * percentage;
+        if (more) {
+            return character.getX() > pointToReach;
+        }
+        return character.getX() <= pointToReach;
+    }
+
+    function applyForces() {
+        if (character.getX() > forces.pushBack.limit.x) {
+
+            if (charAtScreen(0.45, true)) {
+                forces.pushBack.x = -3;
+            } else {
+                if (charAtScreen(0.3, true)) {
+                    forces.pushBack.x = -2;
+                }
+            }
+            if (charAtScreen(0.3, false)) {
+                forces.pushBack.x = -1;
+            }
+            character.setX(character.getX() + forces.pushBack.x);
+        }
+    }
+
+    function moveCharacter() {
+        var currentCharPosition = character.getX() + character.sprite.width;
+        if (currentCharPosition < obstacle.x) {
+            character.setX(character.getX() + speed);
+        }
+    }
+
+    function isItClose() {
+       if (character.getX() > screenWidth * 0.4) {
+            if (!soClose.sprite.visible) {
+                soClose.sprite.visible = true;
+            }
+
+        } else {
+            if (soClose.sprite.visible) {
+                soClose.sprite.visible = false;
+            }
+        }
+    }
+
+    function update() {
+
+        applyForces();
+        moveBackground();
+        isItClose();
+
+
+        // Bouncing bio image
+        if (bio.sprite.y > (bio.initialPositionY + bio.bounceDelta)) {
+            bio.direction = -1;
+        }
+        if (bio.sprite.y < (bio.initialPositionY - bio.bounceDelta)) {
+            bio.direction = 1;
+        }
+        bio.sprite.y = bio.sprite.y + bio.speed * bio.direction;
+
+        // Keyboard input handling
+        if (cheats.move) {
+            if (leftKey.isDown)
+            {
+                moveCharacter();
+            }
+        } else {
+            if (leftKey.isDown)
+            {
+                if (character.lastPressedKey !== 'left') {
+                    moveCharacter();
+                    character.lastPressedKey = 'left';
+                }
+            } else {
+                if (rightKey.isDown) {
+                    if (character.lastPressedKey !== 'right') {
+                        moveCharacter();
+                        character.lastPressedKey = 'right';
+                    }
+                }
+            }
+        }
+    }
+
+</script>
+
+</body>
+</html>
